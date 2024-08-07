@@ -1,0 +1,23 @@
+{
+  "name": "topic-extraction",
+  "version": "1.0.0",
+  "description": "Script to extract topic information and insert into Supabase",
+  "main": "extract.js",
+  "scripts": {
+    "start": "node extract.js",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^1.35.7",
+    "cheerio": "^1.0.0-rc.10",
+    "dotenv": "^16.0.3",
+    "node-fetch": "^2.6.1"
+  },
+  "devDependencies": {
+    "eslint": "^9.8.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "prettier": "^3.3.3"
+  }
+}
