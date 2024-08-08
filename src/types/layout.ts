@@ -4,7 +4,8 @@ export type CategoryProps = {
 }
 
 export type TopBarProps = {
-  title: string
+  title?: string
+  isPinned?: boolean
   isVisible?: boolean
   setIsVisible?: (visible: boolean) => void
 }
@@ -34,11 +35,18 @@ export type TopicInfoProps = {
 
 export type TopicItemProps = {
   id: string
+  isPinned: boolean
   avatar: AvatarProps
   topicInfo: TopicInfoProps
 }
 
 export type ForumProps = {
-  topbar: TopBarProps
-  topicItem?: TopicItemProps[]
+  title?: string
+  topbar?: TopBarProps
+  topicList: TopicItemProps[]
+}
+
+export enum PinnedStatus {
+  IS_PINNED = 'Tópico Oficial / Fixo',
+  NOT_PINNED = 'Tópico Regular',
 }

@@ -3,6 +3,42 @@
 import Category from '@/components/Category'
 import Forum from '@/components/Forum'
 import Header from '@/components/Header'
+import { TopicItemProps } from '@/types/layout'
+
+const mockPinnedTopicList: TopicItemProps[] = [
+  {
+    id: '1',
+    avatar: { src: 'https://i.pravatar.cc/30' },
+    isPinned: true,
+    topicInfo: {
+      topic: { title: 'teste teste teste 111', url: '#' },
+      author: { name: 'autor01', authorUrl: '#' },
+      likes: { count: 0, liked: false },
+    },
+  },
+]
+const mockNormalTopicList: TopicItemProps[] = [
+  {
+    id: '2',
+    avatar: { src: 'https://i.pravatar.cc/30' },
+    isPinned: false,
+    topicInfo: {
+      topic: { title: 'teste teste teste 222', url: '#' },
+      author: { name: 'autor02', authorUrl: '#' },
+      likes: { count: 5, liked: true },
+    },
+  },
+  {
+    id: '3',
+    avatar: { src: 'https://i.pravatar.cc/30' },
+    isPinned: false,
+    topicInfo: {
+      topic: { title: 'teste teste teste 333', url: '#' },
+      author: { name: 'autor03', authorUrl: '#' },
+      likes: { count: 10, liked: true },
+    },
+  },
+]
 
 export default function Home() {
   return (
@@ -15,7 +51,8 @@ export default function Home() {
             description="Espaço para tudo sobre PCs e gadgets. Overclock, placas de vídeo, processadores e objetos de tecnologia em geral."
           />
         </div>
-        <Forum topbar={{ title: 'Tópico Oficial / Fixo' }} />
+        <Forum topicList={mockPinnedTopicList} />
+        <Forum topicList={mockNormalTopicList} />
       </main>
     </>
   )
