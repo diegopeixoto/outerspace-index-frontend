@@ -13,8 +13,21 @@ export type AvatarProps = {
   src: string
 }
 
+export type LikeProps = {
+  count: number
+  liked: boolean
+}
+
+export type TopicInfoProps = {
+  title: string
+  author: string
+  likes: LikeProps
+}
+
 export type TopicItemProps = {
+  id: string
   avatar: AvatarProps
+  topicInfo: TopicInfoProps
 }
 
 export type ForumProps = {

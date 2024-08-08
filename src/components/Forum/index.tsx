@@ -2,9 +2,6 @@ import { useState } from 'react'
 import TopBar from './TopBar'
 import { ForumProps } from '@/types/layout'
 import TopicItem from './TopicItem'
-function getRandom() {
-  return Math.floor(Math.random() * 1000)
-}
 
 export default function Forum({ topbar }: ForumProps) {
   const [isVisible, setIsVisible] = useState<boolean>(true)
@@ -22,8 +19,24 @@ export default function Forum({ topbar }: ForumProps) {
                     ${isVisible ? 'flex' : 'hidden'} 
                      `}
       >
-        <TopicItem avatar={{ src: 'https://i.pravatar.cc/' + getRandom() }} />
-        <TopicItem avatar={{ src: 'https://i.pravatar.cc/' + getRandom() }} />
+        <TopicItem
+          id="x"
+          avatar={{ src: 'https://i.pravatar.cc/30' }}
+          topicInfo={{
+            title: 'teste teste teste',
+            author: 'autor02',
+            likes: { count: 0, liked: false },
+          }}
+        />
+        <TopicItem
+          id="x"
+          avatar={{ src: 'https://i.pravatar.cc/35' }}
+          topicInfo={{
+            title: 'teste teste teste 444',
+            author: 'autor05',
+            likes: { count: 15, liked: true },
+          }}
+        />
       </div>
     </div>
   )
