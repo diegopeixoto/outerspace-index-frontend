@@ -1,0 +1,33 @@
+name: Process New Topic
+
+on:
+  push:
+    branches:
+      - content
+    paths:
+      - '**.json'
+
+jobs:
+  process-topic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - name: Install dependencies
+        run: npm ci
+      - name: Get changed files
+        id: changed-files
+        uses: jitterbit/get-changed-files@v1
+      - name: Process new topics
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          for file in ${{ steps.changed-files.outputs.added_modified }}; do
+            if [[ $file == *.json ]]; then
+              node process-topic.js $file
+            fi
+          done
