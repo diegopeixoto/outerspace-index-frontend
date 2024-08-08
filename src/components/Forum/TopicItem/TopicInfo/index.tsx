@@ -1,4 +1,4 @@
-import { TopicInfoProps } from '@/types/layout'
+import { LikeProps, TopicInfoProps } from '@/types/layout'
 
 export default function TopicInfo({ topic, author, likes }: TopicInfoProps) {
   return (
@@ -10,8 +10,12 @@ export default function TopicInfo({ topic, author, likes }: TopicInfoProps) {
         <a className="block" href={author.authorUrl}>
           {author.name}
         </a>
-        <p>{likes.count}</p>
+        <LikeButton {...likes} />
       </div>
     </div>
   )
+}
+
+function LikeButton(likes: LikeProps) {
+  return <p>{likes.count}</p>
 }
