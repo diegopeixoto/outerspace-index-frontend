@@ -18,9 +18,17 @@ export type LikeProps = {
   liked: boolean
 }
 
-export type TopicInfoProps = {
+export type TopicProps = {
   title: string
-  author: string
+  url: string
+}
+export type AuthorProps = {
+  name: string
+  authorUrl: string
+}
+export type TopicInfoProps = {
+  topic: TopicProps
+  author: AuthorProps
   likes: LikeProps
 }
 
