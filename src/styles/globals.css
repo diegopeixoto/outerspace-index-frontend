@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  anti-aliasing: smooth;
+  -webkit-font-smoothing: antialiased;
+  color: #7c869d;
+}
+
+.rotate {
+  transform: rotate(0deg);
+  transition: transform 0.5s;
+}
+
+.rotate-180 {
+  transform: rotate(180deg);
+  transition: transform 0.5s;
+}
