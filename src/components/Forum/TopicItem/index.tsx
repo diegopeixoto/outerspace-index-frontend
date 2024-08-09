@@ -14,7 +14,7 @@ export default function TopicItem({
         isPinned ? 'bg-topic-item-pinned' : 'bg-topic-item'
       }  px-[15px] py-[5px]  w-full min-h-[85px] flex `}
     >
-      <div className="grid grid-cols-[15%_1fr] grid-rows-[85px] gap-x-[10px] gap-y-0 grid-flow-row items-center w-full">
+      <div className="grid   grid-cols-[60px_1fr]  grid-rows-[85px] gap-x-[10px] gap-y-0 grid-flow-row items-center w-full">
         <Avatar src={avatar.src} />
         <TopicInfo {...topicInfo} />
       </div>
