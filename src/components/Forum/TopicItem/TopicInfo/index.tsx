@@ -1,4 +1,5 @@
-import { LikeProps, TopicInfoProps } from '@/types/layout'
+import { TopicInfoProps } from '@/types/layout'
+import LikeButton from './LikeButton'
 
 export default function TopicInfo({ topic, author, likes }: TopicInfoProps) {
   return (
@@ -14,8 +15,4 @@ export default function TopicInfo({ topic, author, likes }: TopicInfoProps) {
       </div>
     </div>
   )
-}
-
-function LikeButton(likes: LikeProps) {
-  return <p>{likes.count}</p>
 }
