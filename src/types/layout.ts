@@ -26,6 +26,7 @@ export type TopicProps = {
 export type AuthorProps = {
   name: string
   authorUrl: string
+  avatar: AvatarProps
 }
 export type TopicInfoProps = {
   topic: TopicProps
@@ -36,7 +37,6 @@ export type TopicInfoProps = {
 export type TopicItemProps = {
   id: string
   isPinned: boolean
-  avatar: AvatarProps
   topicInfo: TopicInfoProps
 }
 

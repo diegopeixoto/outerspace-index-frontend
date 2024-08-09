@@ -9,35 +9,57 @@ const supabase = createClient(
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const page = parseInt(searchParams.get('page') || '1')
+  const browser_id = searchParams.get('browser_id')
+  const pinned = searchParams.get('pinned') === 'true'
   const pageSize = 10
   const start = (page - 1) * pageSize
   const end = start + pageSize - 1
 
-  const { data: pinnedData, error: pinnedError } = await supabase
+  const { data: linksData, error: linksError } = await supabase
     .from('links')
     .select(
-      'id, title, url, author_name, author_link, likes, is_pinned, created_at'
+      'id, title, url, author_name, author_link, avatar_url, likes, is_pinned, created_at'
     )
-    .eq('is_pinned', true)
     .order('likes', { ascending: false })
+  // .range(start, end)
 
-  const { data: unpinnedData, error: unpinnedError } = await supabase
-    .from('links')
-    .select(
-      'id, title, url, author_name, author_link, likes, is_pinned, created_at'
-    )
-    .eq('is_pinned', false)
-    .order('likes', { ascending: false })
-    .range(start, end)
-
-  if (pinnedError || unpinnedError) {
-    return NextResponse.json({ error: 'Error fetching data' }, { status: 500 })
+  if (linksError) {
+    return NextResponse.json({ error: linksError }, { status: 500 })
   }
 
-  const allData = [...(pinnedData || []), ...(unpinnedData || [])]
-  return NextResponse.json({ data: allData, page, pageSize })
-}
+  const { data: likesData, error: likesError } = await supabase
+    .from('likes')
+    .select('topic_id')
+    .eq('browser_id', browser_id)
 
+  if (likesError) {
+    return NextResponse.json({ error: likesError }, { status: 500 })
+  }
+
+  const likedLinksSet = new Set(likesData?.map((like) => like.topic_id))
+
+  const filteredLinks =
+    linksData?.filter((link) => link.is_pinned === pinned) || []
+
+  const allData = filteredLinks.map((topic) => ({
+    id: topic.id,
+    topicInfo: {
+      topic: { title: topic.title, url: topic.url },
+      author: {
+        name: topic.author_name,
+        authorUrl: topic.author_link,
+        avatar: { src: topic.avatar_url },
+      },
+      likes: {
+        count: topic.likes,
+        liked: likedLinksSet.has(topic.id),
+      },
+    },
+    isPinned: topic.is_pinned,
+    created_at: topic.created_at,
+  }))
+  return NextResponse.json({ topics: allData, page, pageSize })
+}
 export async function POST(request: Request) {
   const { topic_id, browser_id } = await request.json()
 
