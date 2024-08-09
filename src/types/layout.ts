@@ -15,9 +15,18 @@ export type AvatarProps = {
 }
 
 export type LikeProps = {
+  topicId: string
   count: number
   liked: boolean
+  isPinned: boolean
+  handleLike: handleLikeProps
 }
+
+export type handleLikeProps = (
+  topicId: string,
+  isPinned: boolean,
+  action: string
+) => void
 
 export type TopicProps = {
   title: string

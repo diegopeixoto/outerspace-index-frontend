@@ -4,62 +4,62 @@ import Category from '@/components/Category'
 import Forum from '@/components/Forum'
 import Header from '@/components/Header'
 import NavBar from '@/components/NavBar'
-import { getBrowserId } from '@/lib/browserid'
-import { TopicItemProps } from '@/types/layout'
+import { useBrowserId } from '@/lib/browserid'
+import {
+  fetcher,
+  getPinned,
+  getTopics,
+  handleLikedData,
+} from '@/lib/handleData'
 import { type TopicAPIResponse } from '@/types/topic'
-import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import useSWRInfinite from 'swr/infinite'
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
-
-const getKey = (
-  pageIndex: number,
-  previousPageData: TopicItemProps[],
-  isPinned: boolean,
-  browserId: string
-) => {
-  if (previousPageData && !previousPageData.length) return null
-  return `/api/topics?page=${pageIndex}&pinned=${isPinned}&browser_id=${browserId}`
-}
-
-const getPinned = (isPinned: boolean, browserId: string) => {
-  return `/api/topics?page=1&pinned=${isPinned}&browser_id=${browserId}`
-}
-
-function useBrowserId() {
-  const [browserId, setBrowserId] = useState<string | null>(null)
-
-  useEffect(() => {
-    const fetchBrowserId = async () => {
-      const { id } = await getBrowserId()
-      setBrowserId(id)
-    }
-
-    fetchBrowserId()
-  }, [])
-
-  return browserId
-}
-
 export default function Home() {
   const browserId = useBrowserId()
+
   const { data, error, size, setSize, mutate } =
     useSWRInfinite<TopicAPIResponse>(
       (pageIndex, previousPageData) =>
-        getKey(pageIndex, previousPageData, false, browserId!),
+        getTopics(pageIndex, previousPageData, false, browserId!),
       fetcher
     )
-  const { data: pinnedData, error: pinnedError } = useSWR<TopicAPIResponse>(
-    () => getPinned(true, browserId!),
-    fetcher
-  )
-  console.log(pinnedData)
+  const {
+    data: pinnedData,
+    error: pinnedError,
+    mutate: pinedMutate,
+  } = useSWR<TopicAPIResponse>(() => getPinned(true, browserId!), fetcher)
+
   const isLoadingInitialData = !data && !error && !pinnedData && !pinnedError
 
-  const pinnedTopics = pinnedData ? pinnedData.topics : []
-  console.log(pinnedTopics)
-  const topics = data ? data.flatMap((page) => page.topics) : []
+  const dataPinnedTopics = pinnedData ? pinnedData.topics : []
+  const dataTopics = data ? data.flatMap((page) => page.topics) : []
+
+  const handleLike = async (
+    topicId: string,
+    isPinned: boolean,
+    action: string
+  ) => {
+    if (!browserId) return
+
+    const response = await fetch('/api/topics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        topic_id: topicId,
+        browser_id: browserId,
+        action,
+      }),
+    })
+
+    if (response.ok) {
+      isPinned ? pinedMutate() : mutate()
+    }
+  }
+
+  const topics = handleLikedData(dataTopics, handleLike)
+
+  const pinnedTopics = handleLikedData(dataPinnedTopics, handleLike)
 
   return (
     <>
