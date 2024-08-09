@@ -3,6 +3,7 @@
 import Category from '@/components/Category'
 import Forum from '@/components/Forum'
 import Header from '@/components/Header'
+import NavBar from '@/components/NavBar'
 import { TopicItemProps } from '@/types/layout'
 
 const mockPinnedTopicList: TopicItemProps[] = [
@@ -53,6 +54,7 @@ export default function Home() {
         </div>
         <Forum topicList={mockPinnedTopicList} />
         <Forum topicList={mockNormalTopicList} />
+        <NavBar />
       </main>
     </>
   )
