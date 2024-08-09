@@ -4,6 +4,7 @@ import Category from '@/components/Category'
 import Forum from '@/components/Forum'
 import Header from '@/components/Header'
 import NavBar from '@/components/NavBar'
+import { getBrowserId } from '@/lib/browserid'
 import { TopicItemProps } from '@/types/layout'
 import { type TopicAPIResponse } from '@/types/topic'
 import { useEffect, useState } from 'react'
@@ -30,12 +31,12 @@ function useBrowserId() {
   const [browserId, setBrowserId] = useState<string | null>(null)
 
   useEffect(() => {
-    let id = localStorage.getItem('browserId')
-    if (!id) {
-      id = Math.random().toString(36).substring(2, 15)
-      localStorage.setItem('browserId', id)
+    const fetchBrowserId = async () => {
+      const { id } = await getBrowserId()
+      setBrowserId(id)
     }
-    setBrowserId(id)
+
+    fetchBrowserId()
   }, [])
 
   return browserId
