@@ -21,7 +21,7 @@ export default function Home() {
   const { data, error, size, setSize, mutate } =
     useSWRInfinite<TopicAPIResponse>(
       (pageIndex, previousPageData) =>
-        getTopics(pageIndex, previousPageData, false, browserId!),
+        getTopics(pageIndex + 1, 3, previousPageData, false, browserId!),
       fetcher
     )
   const {

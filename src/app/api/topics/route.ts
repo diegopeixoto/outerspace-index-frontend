@@ -8,12 +8,13 @@ const supabase = createClient(
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const page = parseInt(searchParams.get('page') || '1')
+  const page = parseInt(searchParams.get('_page') || '1')
+  const pageSize = parseInt(searchParams.get('_page_size') || '10')
   const browser_id = searchParams.get('browser_id')
   const pinned = searchParams.get('pinned') === 'true'
-  const pageSize = 10
   const start = (page - 1) * pageSize
   const end = start + pageSize - 1
+  console.log(start, end)
 
   const { data: linksData, error: linksError } = await supabase
     .from('links')
@@ -21,7 +22,7 @@ export async function GET(request: Request) {
       'id, title, url, author_name, author_link, avatar_url, likes, is_pinned, created_at'
     )
     .order('likes', { ascending: false })
-  // .range(start, end)
+    .range(start, end)
 
   if (linksError) {
     return NextResponse.json({ error: linksError }, { status: 500 })
@@ -60,6 +61,7 @@ export async function GET(request: Request) {
   }))
   return NextResponse.json({ topics: allData, page, pageSize })
 }
+
 export async function POST(request: Request) {
   const { topic_id, browser_id } = await request.json()
 
