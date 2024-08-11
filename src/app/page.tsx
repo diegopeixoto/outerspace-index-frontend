@@ -15,6 +15,7 @@ import { type TopicAPIResponse, type TopicType } from '@/types/topic'
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import useSWRInfinite from 'swr/infinite'
+import ForumSkeleton from '@/components/Skeleton/ForumSkeleton'
 
 export default function Home() {
   const browserId = useBrowserId()
@@ -82,14 +83,19 @@ export default function Home() {
           />
         </div>
         {isLoadingPinned && isLoadingRegular ? (
-          <p>Loading...</p>
+          <>
+            <ForumSkeleton quantity={1} />
+            <ForumSkeleton quantity={8} />
+          </>
         ) : (
           <>
             <Forum topicList={topics.pinned} />
             <Forum topicList={topics.regular} />
+
+            <div className="mt-14"></div>
           </>
         )}
-        <div className="mt-14"></div>
+
         <NavBar />
       </main>
     </>
