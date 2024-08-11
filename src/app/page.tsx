@@ -14,7 +14,6 @@ import {
 import { type TopicAPIResponse, type TopicType } from '@/types/topic'
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
-import useSWRInfinite from 'swr/infinite'
 import ForumSkeleton from '@/components/Skeleton/ForumSkeleton'
 
 export default function Home() {
@@ -23,14 +22,10 @@ export default function Home() {
 
   const {
     data: regularData,
-    size,
-    setSize,
     mutate: regularMutate,
     isLoading: isLoadingRegular,
-  } = useSWRInfinite<TopicAPIResponse>(
-    (pageIndex, previousPageData) => getTopics(pageIndex + 1, 10, browserId!),
-    fetcher
-  )
+  } = useSWR<TopicAPIResponse>(() => getTopics(browserId!), fetcher)
+
   const {
     data: pinnedData,
     mutate: pinedMutate,
@@ -63,10 +58,7 @@ export default function Home() {
     if (regularData && pinnedData) {
       setTopics({
         ...topics,
-        regular: handleLikedData(
-          regularData.flatMap((page) => page.topics),
-          handleLike
-        ),
+        regular: handleLikedData(regularData.topics, handleLike),
         pinned: handleLikedData(pinnedData.topics, handleLike),
       })
     }
@@ -91,7 +83,6 @@ export default function Home() {
           <>
             <Forum topicList={topics.pinned} />
             <Forum topicList={topics.regular} />
-
             <div className="mt-14"></div>
           </>
         )}

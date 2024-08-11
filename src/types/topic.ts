@@ -1,6 +1,7 @@
 import type { TopicItemProps } from './layout'
 
 export type TopicAPIResponse = {
+  length: number
   topics: TopicItemProps[]
   page: number
   pageSize: number
