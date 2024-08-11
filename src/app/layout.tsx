@@ -1,7 +1,6 @@
 import '@/styles/globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-
 export const metadata: Metadata = {
   title: 'Índice OUTER SPACE',
   description: 'Indice dos tópicos do fórum OUTER SPACE',

@@ -11,56 +11,65 @@ import {
   getTopics,
   handleLikedData,
 } from '@/lib/handleData'
-import { type TopicAPIResponse } from '@/types/topic'
+import { type TopicAPIResponse, type TopicType } from '@/types/topic'
+import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import useSWRInfinite from 'swr/infinite'
 
 export default function Home() {
   const browserId = useBrowserId()
+  const [topics, setTopics] = useState<TopicType>({ regular: [], pinned: [] })
 
-  const { data, error, size, setSize, mutate } =
-    useSWRInfinite<TopicAPIResponse>(
-      (pageIndex, previousPageData) =>
-        getTopics(pageIndex + 1, 3, previousPageData, false, browserId!),
-      fetcher
-    )
+  const {
+    data: regularData,
+    size,
+    setSize,
+    mutate: regularMutate,
+    isLoading: isLoadingRegular,
+  } = useSWRInfinite<TopicAPIResponse>(
+    (pageIndex, previousPageData) => getTopics(pageIndex + 1, 10, browserId!),
+    fetcher
+  )
   const {
     data: pinnedData,
-    error: pinnedError,
     mutate: pinedMutate,
-  } = useSWR<TopicAPIResponse>(() => getPinned(true, browserId!), fetcher)
+    isLoading: isLoadingPinned,
+  } = useSWR<TopicAPIResponse>(() => getPinned(browserId!), fetcher)
 
-  const isLoadingInitialData = !data && !error && !pinnedData && !pinnedError
+  useEffect(() => {
+    const handleLike = async (
+      topicId: string,
+      isPinned: boolean,
+      action: string
+    ) => {
+      if (!browserId) return
 
-  const dataPinnedTopics = pinnedData ? pinnedData.topics : []
-  const dataTopics = data ? data.flatMap((page) => page.topics) : []
+      const response = await fetch('/api/topics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic_id: topicId,
+          browser_id: browserId,
+          action,
+        }),
+      })
 
-  const handleLike = async (
-    topicId: string,
-    isPinned: boolean,
-    action: string
-  ) => {
-    if (!browserId) return
-
-    const response = await fetch('/api/topics', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        topic_id: topicId,
-        browser_id: browserId,
-        action,
-      }),
-    })
-
-    if (response.ok) {
-      isPinned ? pinedMutate() : mutate()
+      if (response.ok) {
+        isPinned ? pinedMutate() : regularMutate()
+      }
     }
-  }
 
-  const topics = handleLikedData(dataTopics, handleLike)
-
-  const pinnedTopics = handleLikedData(dataPinnedTopics, handleLike)
-
+    if (regularData && pinnedData) {
+      setTopics({
+        ...topics,
+        regular: handleLikedData(
+          regularData.flatMap((page) => page.topics),
+          handleLike
+        ),
+        pinned: handleLikedData(pinnedData.topics, handleLike),
+      })
+    }
+  }, [regularData, pinnedData, browserId, pinedMutate])
   return (
     <>
       <Header />
@@ -71,12 +80,12 @@ export default function Home() {
             description="Espaço para tudo sobre PCs e gadgets. Overclock, placas de vídeo, processadores e objetos de tecnologia em geral."
           />
         </div>
-        {isLoadingInitialData ? (
+        {isLoadingPinned && isLoadingRegular ? (
           <p>Loading...</p>
         ) : (
           <>
-            <Forum topicList={pinnedTopics} />
-            <Forum topicList={topics} />
+            <Forum topicList={topics.pinned} />
+            <Forum topicList={topics.regular} />
           </>
         )}
         <NavBar />

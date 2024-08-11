@@ -5,3 +5,7 @@ export type TopicAPIResponse = {
   page: number
   pageSize: number
 }
+export type TopicType = {
+  regular: TopicItemProps[]
+  pinned: TopicItemProps[]
+}
