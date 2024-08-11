@@ -18,6 +18,7 @@ export default function LikeButton(likes: LikeProps) {
       size: 20,
       likedColor: 'red',
       unlikedColor: '#e2e8f0',
+      hoverColor: 'white',
     }
 
     if (likes.liked) {
@@ -41,7 +42,11 @@ export default function LikeButton(likes: LikeProps) {
   }
 
   return (
-    <div className="flex items-center gap-3" onClick={handleLikeButton}>
+    <div
+      className="flex items-center gap-3 cursor-pointer hover:text-white 
+      transition-all hover:scale-[1.15] hover-font-bold"
+      onClick={handleLikeButton}
+    >
       {likeIcon}
       <p className="">{likesCount}</p>
     </div>

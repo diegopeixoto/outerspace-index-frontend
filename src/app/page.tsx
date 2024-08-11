@@ -69,7 +69,8 @@ export default function Home() {
         pinned: handleLikedData(pinnedData.topics, handleLike),
       })
     }
-  }, [regularData, pinnedData, browserId, pinedMutate])
+  }, [regularData, pinnedData, browserId, pinedMutate, regularMutate])
+
   return (
     <>
       <Header />
@@ -88,6 +89,7 @@ export default function Home() {
             <Forum topicList={topics.regular} />
           </>
         )}
+        <div className="mt-14"></div>
         <NavBar />
       </main>
     </>

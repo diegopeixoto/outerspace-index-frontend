@@ -15,7 +15,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body
-        className={`${inter} flex flex-col items-center  w-screen h-screen bg-outer-space  bg-cover center-50`}
+        className={`${inter} flex flex-col items-center  w-screen h-screen bg-outer-space  bg-cover center-50 bg-fixed`}
       >
         {children}
       </body>

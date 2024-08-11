@@ -56,6 +56,6 @@ export type ForumProps = {
 }
 
 export enum PinnedStatus {
-  IS_PINNED = 'Tópico Oficial / Fixo',
+  IS_PINNED = 'Tópico Oficial',
   NOT_PINNED = 'Tópico Regular',
 }
