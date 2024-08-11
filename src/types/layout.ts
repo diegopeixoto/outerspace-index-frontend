@@ -15,9 +15,18 @@ export type AvatarProps = {
 }
 
 export type LikeProps = {
+  topicId: string
   count: number
   liked: boolean
+  isPinned: boolean
+  handleLike: handleLikeProps
 }
+
+export type handleLikeProps = (
+  topicId: string,
+  isPinned: boolean,
+  action: string
+) => void
 
 export type TopicProps = {
   title: string
@@ -26,6 +35,7 @@ export type TopicProps = {
 export type AuthorProps = {
   name: string
   authorUrl: string
+  avatar: AvatarProps
 }
 export type TopicInfoProps = {
   topic: TopicProps
@@ -36,7 +46,6 @@ export type TopicInfoProps = {
 export type TopicItemProps = {
   id: string
   isPinned: boolean
-  avatar: AvatarProps
   topicInfo: TopicInfoProps
 }
 
@@ -47,6 +56,6 @@ export type ForumProps = {
 }
 
 export enum PinnedStatus {
-  IS_PINNED = 'Tópico Oficial / Fixo',
+  IS_PINNED = 'Tópico Oficial',
   NOT_PINNED = 'Tópico Regular',
 }

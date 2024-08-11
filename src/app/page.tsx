@@ -4,44 +4,66 @@ import Category from '@/components/Category'
 import Forum from '@/components/Forum'
 import Header from '@/components/Header'
 import NavBar from '@/components/NavBar'
-import { TopicItemProps } from '@/types/layout'
-
-const mockPinnedTopicList: TopicItemProps[] = [
-  {
-    id: '1',
-    avatar: { src: 'https://i.pravatar.cc/30' },
-    isPinned: true,
-    topicInfo: {
-      topic: { title: 'teste teste teste 111', url: '#' },
-      author: { name: 'autor01', authorUrl: '#' },
-      likes: { count: 0, liked: false },
-    },
-  },
-]
-const mockNormalTopicList: TopicItemProps[] = [
-  {
-    id: '2',
-    avatar: { src: 'https://i.pravatar.cc/30' },
-    isPinned: false,
-    topicInfo: {
-      topic: { title: 'teste teste teste 222', url: '#' },
-      author: { name: 'autor02', authorUrl: '#' },
-      likes: { count: 5, liked: true },
-    },
-  },
-  {
-    id: '3',
-    avatar: { src: 'https://i.pravatar.cc/30' },
-    isPinned: false,
-    topicInfo: {
-      topic: { title: 'teste teste teste 333', url: '#' },
-      author: { name: 'autor03', authorUrl: '#' },
-      likes: { count: 10, liked: true },
-    },
-  },
-]
+import { useBrowserId } from '@/lib/browserid'
+import {
+  fetcher,
+  getPinned,
+  getTopics,
+  handleLikedData,
+} from '@/lib/handleData'
+import { type TopicAPIResponse, type TopicType } from '@/types/topic'
+import { useEffect, useState } from 'react'
+import useSWR from 'swr'
+import ForumSkeleton from '@/components/Skeleton/ForumSkeleton'
 
 export default function Home() {
+  const browserId = useBrowserId()
+  const [topics, setTopics] = useState<TopicType>({ regular: [], pinned: [] })
+
+  const {
+    data: regularData,
+    mutate: regularMutate,
+    isLoading: isLoadingRegular,
+  } = useSWR<TopicAPIResponse>(() => getTopics(browserId!), fetcher)
+
+  const {
+    data: pinnedData,
+    mutate: pinedMutate,
+    isLoading: isLoadingPinned,
+  } = useSWR<TopicAPIResponse>(() => getPinned(browserId!), fetcher)
+
+  useEffect(() => {
+    const handleLike = async (
+      topicId: string,
+      isPinned: boolean,
+      action: string
+    ) => {
+      if (!browserId) return
+
+      const response = await fetch('/api/topics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic_id: topicId,
+          browser_id: browserId,
+          action,
+        }),
+      })
+
+      if (response.ok) {
+        isPinned ? pinedMutate() : regularMutate()
+      }
+    }
+
+    if (regularData && pinnedData) {
+      setTopics({
+        ...topics,
+        regular: handleLikedData(regularData.topics, handleLike),
+        pinned: handleLikedData(pinnedData.topics, handleLike),
+      })
+    }
+  }, [regularData, pinnedData, browserId, pinedMutate, regularMutate])
+
   return (
     <>
       <Header />
@@ -52,8 +74,19 @@ export default function Home() {
             description="Espaço para tudo sobre PCs e gadgets. Overclock, placas de vídeo, processadores e objetos de tecnologia em geral."
           />
         </div>
-        <Forum topicList={mockPinnedTopicList} />
-        <Forum topicList={mockNormalTopicList} />
+        {isLoadingPinned && isLoadingRegular ? (
+          <>
+            <ForumSkeleton quantity={1} />
+            <ForumSkeleton quantity={8} />
+          </>
+        ) : (
+          <>
+            <Forum topicList={topics.pinned} />
+            <Forum topicList={topics.regular} />
+            <div className="mt-14"></div>
+          </>
+        )}
+
         <NavBar />
       </main>
     </>
