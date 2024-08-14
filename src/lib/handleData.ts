@@ -1,21 +1,35 @@
-import type { handleLikeProps, TopicItemProps } from '@/types/layout'
-export const getTopics = (browserId: string) => {
-  return `api/topics?browser_id=${browserId}&pinned=${'false'}`
+import type { HandleLikeProps, TopicItemProps } from '@/types/layout'
+
+interface GetTopicsOptions {
+  pinned: boolean
+  browserId: string
 }
 
-export const getPinned = (browserId: string) => {
-  return `/api/topics?cursor=0&limit=50&pinned=${'true'}&browser_id=${browserId}`
+export const getTopicsUrl = ({
+  pinned,
+  browserId,
+}: GetTopicsOptions): string => {
+  const params = new URLSearchParams({
+    browser_id: browserId,
+    pinned: pinned.toString(),
+  })
+  return `api/topics?${params.toString()}`
 }
 
-export const fetcher = async (url: string) =>
-  fetch(url).then((res) => res.json())
+export const fetcher = async <T>(url: string): Promise<T> => {
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`)
+  }
+  return response.json()
+}
 
-export const handleLikedData = (
+export const enhanceTopicsWithLikeHandler = (
   topicsData: TopicItemProps[],
-  handleLike: handleLikeProps
-) => {
-  return topicsData.map((topic) => {
-    return {
+  handleLike: HandleLikeProps
+): TopicItemProps[] => {
+  return topicsData.map(
+    (topic): TopicItemProps => ({
       ...topic,
       topicInfo: {
         ...topic.topicInfo,
@@ -23,9 +37,9 @@ export const handleLikedData = (
           ...topic.topicInfo.likes,
           topicId: topic.id,
           isPinned: topic.isPinned,
-          handleLike: handleLike,
+          handleLike,
         },
       },
-    }
-  })
+    })
+  )
 }

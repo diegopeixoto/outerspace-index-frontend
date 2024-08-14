@@ -1,45 +1,40 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import type { TopicItemProps } from '@/types/layout'
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_KEY!
 )
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const page = parseInt(searchParams.get('cursor') || '0')
-  const pageSize = parseInt(searchParams.get('limit') || '10')
-  const browser_id = searchParams.get('browser_id')
-  const pinned = searchParams.get('pinned') === 'true'
-
-  const { data: linksData, error: linksError } = await supabase
+async function fetchLinks(pinned: boolean) {
+  const { data, error } = await supabase
     .from('links')
     .select(
       'id, title, url, author_name, author_link, avatar_url, likes, is_pinned, created_at'
     )
     .order('likes', { ascending: false })
-  // .range(start, end)
+    .eq('is_pinned', pinned)
 
-  if (linksError) {
-    return NextResponse.json({ error: linksError }, { status: 500 })
-  }
+  if (error) throw new Error('Error fetching links')
+  return data
+}
 
-  const { data: likesData, error: likesError } = await supabase
+async function fetchLikes(browser_id: string) {
+  const { data, error } = await supabase
     .from('likes')
     .select('topic_id')
     .eq('browser_id', browser_id)
 
-  if (likesError) {
-    return NextResponse.json({ error: likesError }, { status: 500 })
-  }
+  if (error) throw new Error('Error fetching likes')
+  return new Set(data?.map((like) => like.topic_id))
+}
 
-  const likedLinksSet = new Set(likesData?.map((like) => like.topic_id))
-
-  const filteredLinks =
-    linksData?.filter((link) => link.is_pinned === pinned) || []
-
-  const allData = filteredLinks.map((topic) => ({
+function transformTopics(
+  linksData: any[],
+  likedLinksSet: Set<string>
+): TopicItemProps[] {
+  return linksData.map((topic) => ({
     id: topic.id,
     topicInfo: {
       topic: { title: topic.title, url: topic.url },
@@ -56,52 +51,90 @@ export async function GET(request: Request) {
     isPinned: topic.is_pinned,
     created_at: topic.created_at,
   }))
-  return NextResponse.json({ topics: allData, page, pageSize })
 }
 
-export async function POST(request: Request) {
-  const { topic_id, browser_id } = await request.json()
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const browser_id = searchParams.get('browser_id')
+    const pinned = searchParams.get('pinned') === 'true'
 
-  const { data: existingLike, error: checkError } = await supabase
+    if (!browser_id) throw new Error('Browser ID is required')
+
+    const [linksData, likedLinksSet] = await Promise.all([
+      fetchLinks(pinned),
+      fetchLikes(browser_id),
+    ])
+
+    const allData = transformTopics(linksData, likedLinksSet)
+
+    return NextResponse.json({ topics: allData })
+  } catch (error) {
+    console.error('GET Error:', error)
+    return NextResponse.json(
+      { error: (error as Error).message },
+      { status: 500 }
+    )
+  }
+}
+
+async function checkExistingLike(topic_id: string, browser_id: string) {
+  const { data, error } = await supabase
     .from('likes')
     .select('id')
     .match({ topic_id, browser_id })
     .single()
 
-  if (checkError && checkError.code !== 'PGRST116') {
-    return NextResponse.json(
-      { error: 'Error checking like status' },
-      { status: 500 }
-    )
+  if (error && error.code !== 'PGRST116') {
+    throw new Error('Error checking like status')
   }
 
-  if (existingLike) {
-    const { error: deleteError } = await supabase
-      .from('likes')
-      .delete()
-      .match({ topic_id, browser_id })
+  return data
+}
 
-    if (deleteError) {
-      return NextResponse.json(
-        { error: 'Error removing like' },
-        { status: 500 }
-      )
+async function removeLike(topic_id: string, browser_id: string) {
+  const { error: deleteError } = await supabase
+    .from('likes')
+    .delete()
+    .match({ topic_id, browser_id })
+
+  if (deleteError) throw new Error('Error removing like')
+
+  await supabase.rpc('decrement_likes', { row_id: topic_id })
+}
+
+async function addLike(topic_id: string, browser_id: string) {
+  const { error: insertError } = await supabase
+    .from('likes')
+    .insert({ topic_id, browser_id })
+
+  if (insertError) throw new Error('Error adding like')
+
+  await supabase.rpc('increment_likes', { row_id: topic_id })
+}
+
+export async function POST(request: Request) {
+  try {
+    const { topic_id, browser_id } = await request.json()
+
+    if (!topic_id || !browser_id) {
+      throw new Error('Topic ID and Browser ID are required')
     }
 
-    await supabase.rpc('decrement_likes', { row_id: topic_id })
+    const existingLike = await checkExistingLike(topic_id, browser_id)
 
-    return NextResponse.json({ message: 'Like removed successfully' })
-  } else {
-    const { error: insertError } = await supabase
-      .from('likes')
-      .insert({ topic_id, browser_id })
-
-    if (insertError) {
-      return NextResponse.json({ error: 'Error adding like' }, { status: 500 })
+    if (existingLike) {
+      await removeLike(topic_id, browser_id)
+      return NextResponse.json({ message: 'Like removed successfully' })
+    } else {
+      await addLike(topic_id, browser_id)
+      return NextResponse.json({ message: 'Like added successfully' })
     }
-
-    await supabase.rpc('increment_likes', { row_id: topic_id })
-
-    return NextResponse.json({ message: 'Like added successfully' })
+  } catch (error) {
+    console.error('POST Error:', error)
+    return NextResponse.json(
+      { error: (error as Error).message },
+      { status: 500 }
+    )
   }
 }

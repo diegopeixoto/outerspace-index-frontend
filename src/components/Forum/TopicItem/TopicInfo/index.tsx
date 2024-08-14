@@ -15,7 +15,12 @@ export default function TopicInfo({ topic, author, likes }: TopicInfoProps) {
         {topic.title}
       </Link>
       <div className="flex w-full justify-between">
-        <Link className="block" href={author.authorUrl}>
+        <Link
+          className="block"
+          href={author.authorUrl}
+          target="_blank"
+          rel="noreferrer"
+        >
           {author.name}
         </Link>
         <LikeButton {...likes} />

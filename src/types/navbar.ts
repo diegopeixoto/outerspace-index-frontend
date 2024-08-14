@@ -26,12 +26,23 @@ export enum NavLabels {
   MORE = 'Mais',
 }
 
+export enum NavLinks {
+  FORUM = '/',
+  ADD = '/add',
+  GOLD = 'https://forum.outerspace.com.br/index.php?account/upgrades',
+  MORE = '/',
+}
+
 export enum NavActions {
-  NAVIGATE,
-  EXTERNAL,
+  FORUM = 'NAVIGATE',
+  ADD = 'NAVIGATE',
+  GOLD = 'EXTERNAL',
+  MORE = 'NAVIGATE',
 }
 
 export type NavButtonProps = {
+  action: NavActions
+  href: NavLinks
   icon: NavIcons
   label: NavLabels
   selected: boolean

@@ -6,10 +6,9 @@ import Header from '@/components/Header'
 import NavBar from '@/components/NavBar'
 import { useBrowserId } from '@/lib/browserid'
 import {
+  enhanceTopicsWithLikeHandler,
   fetcher,
-  getPinned,
-  getTopics,
-  handleLikedData,
+  getTopicsUrl,
 } from '@/lib/handleData'
 import { type TopicAPIResponse, type TopicType } from '@/types/topic'
 import { useEffect, useState } from 'react'
@@ -24,13 +23,19 @@ export default function Home() {
     data: regularData,
     mutate: regularMutate,
     isLoading: isLoadingRegular,
-  } = useSWR<TopicAPIResponse>(() => getTopics(browserId!), fetcher)
+  } = useSWR<TopicAPIResponse>(
+    () => getTopicsUrl({ pinned: false, browserId: browserId! }),
+    fetcher
+  )
 
   const {
     data: pinnedData,
     mutate: pinedMutate,
     isLoading: isLoadingPinned,
-  } = useSWR<TopicAPIResponse>(() => getPinned(browserId!), fetcher)
+  } = useSWR<TopicAPIResponse>(
+    () => getTopicsUrl({ pinned: true, browserId: browserId! }),
+    fetcher
+  )
 
   useEffect(() => {
     const handleLike = async (
@@ -39,7 +44,6 @@ export default function Home() {
       action: string
     ) => {
       if (!browserId) return
-
       const response = await fetch('/api/topics', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -57,9 +61,8 @@ export default function Home() {
 
     if (regularData && pinnedData) {
       setTopics({
-        ...topics,
-        regular: handleLikedData(regularData.topics, handleLike),
-        pinned: handleLikedData(pinnedData.topics, handleLike),
+        regular: enhanceTopicsWithLikeHandler(regularData.topics, handleLike),
+        pinned: enhanceTopicsWithLikeHandler(pinnedData.topics, handleLike),
       })
     }
   }, [regularData, pinnedData, browserId, pinedMutate, regularMutate])
