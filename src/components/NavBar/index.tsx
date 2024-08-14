@@ -1,5 +1,5 @@
 import { navButtons } from '@/constants/navbar'
-import { NavIcons, NavLabels } from '@/types/navbar'
+import { NavActions, NavIcons, NavLabels, NavLinks } from '@/types/navbar'
 import NavButton from './NavButton'
 
 export default function NavBar() {
@@ -14,6 +14,8 @@ export default function NavBar() {
       {navButtons.map((button) => (
         <NavButton
           key={button}
+          href={NavLinks[button as keyof typeof NavLinks]}
+          action={NavActions[button as keyof typeof NavActions]}
           icon={NavIcons[button as keyof typeof NavIcons]}
           label={NavLabels[button as keyof typeof NavLabels]}
           selected={button == 'FORUM'}
