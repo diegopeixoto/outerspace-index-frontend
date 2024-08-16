@@ -46,6 +46,7 @@ function transformTopics(
         count: topic.likes,
         topicId: topic.id,
         liked: likedLinksSet.has(topic.id),
+        isPinned: topic.is_pinned,
       },
     },
     isPinned: topic.is_pinned,

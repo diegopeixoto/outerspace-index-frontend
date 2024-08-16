@@ -1,38 +1,36 @@
-import type { LikeProps } from '@/types/layout'
-import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState, type ReactNode } from 'react'
 import { FaHeart, FaRegHeart } from 'react-icons/fa6'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useLikeContext } from '@/context/LikeContext'
+import type { LikeProps } from '@/types/layout'
 
-export default function LikeButton(props: LikeProps) {
+export default function LikeButton({
+  topicId,
+  isPinned,
+  count,
+  liked,
+}: LikeProps) {
   const [likeIcon, setLikeIcon] = useState<ReactNode>(<FaHeart />)
-  const { handleLike, isPinned, topicId, count, liked } = props
+  const { handleLike } = useLikeContext()
 
   useEffect(() => {
     const iconConfig = {
       size: 20,
       likedColor: 'red',
       unlikedColor: '#e2e8f0',
-      hoverColor: 'white',
     }
 
-    if (liked) {
-      setLikeIcon(
+    setLikeIcon(
+      liked ? (
         <FaHeart size={iconConfig.size} color={iconConfig.likedColor} />
-      )
-    } else {
-      setLikeIcon(
+      ) : (
         <FaRegHeart size={iconConfig.size} color={iconConfig.unlikedColor} />
       )
-    }
+    )
   }, [liked])
 
   function handleLikeButton() {
-    if (!isPinned) {
-      throw new Error('isPinned is required')
-    }
-    if (handleLike) {
-      handleLike(topicId, isPinned, liked ? 'unlike' : 'like')
-    }
+    handleLike(topicId, isPinned, liked ? 'unlike' : 'like')
   }
 
   return (
