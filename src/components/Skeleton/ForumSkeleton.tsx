@@ -10,11 +10,11 @@ export default function ForumSkeleton({
   quantity: number
   noTopBar?: boolean
 }) {
-  const [isVisible, setIsVisible] = useState<boolean>(true)
+  const [isOpen, setIsOpen] = useState<boolean>(true)
 
   const topbar: TopBarProps = {
-    isVisible: isVisible,
-    setIsVisible,
+    isOpen: isOpen,
+    setIsOpen,
   }
   return (
     <div className="w-full flex-col">
@@ -22,7 +22,7 @@ export default function ForumSkeleton({
       <div
         className={`bg-[#2D3037] shadow-[inset_0px_5px_15px_0px_rgba(0,0,0,0.08) 
                     flex h-fit py-1  flex-col items-start gap-4 self-stretch
-                    ${isVisible ? 'flex' : 'hidden'} 
+                    ${isOpen ? 'flex' : 'hidden'} 
                      `}
       >
         {[...Array(quantity)].map((_, index) => (

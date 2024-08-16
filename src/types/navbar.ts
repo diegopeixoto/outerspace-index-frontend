@@ -30,7 +30,7 @@ export enum NavLinks {
   FORUM = '/',
   ADD = '/add',
   GOLD = 'https://forum.outerspace.com.br/index.php?account/upgrades',
-  MORE = '/',
+  MORE = '/options',
 }
 
 export enum NavActions {

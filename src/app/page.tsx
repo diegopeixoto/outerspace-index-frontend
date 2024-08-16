@@ -3,7 +3,6 @@
 import Category from '@/components/Category'
 import Forum from '@/components/Forum'
 import Header from '@/components/Header'
-import NavBar from '@/components/NavBar'
 import { useBrowserId } from '@/lib/browserid'
 import {
   enhanceTopicsWithLikeHandler,
@@ -14,10 +13,13 @@ import { type TopicAPIResponse, type TopicType } from '@/types/topic'
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import ForumSkeleton from '@/components/Skeleton/ForumSkeleton'
+import { AnimatePresence, motion } from 'framer-motion'
+import type { TopicItemProps } from '@/types/layout'
 
 export default function Home() {
   const browserId = useBrowserId()
   const [topics, setTopics] = useState<TopicType>({ regular: [], pinned: [] })
+  const [isLoading, setIsLoading] = useState<boolean>(true)
 
   const {
     data: regularData,
@@ -36,26 +38,91 @@ export default function Home() {
     () => getTopicsUrl({ pinned: true, browserId: browserId! }),
     fetcher
   )
+  useEffect(() => {
+    if (!isLoadingRegular && !isLoadingPinned) {
+      setIsLoading(false)
+    } else {
+      setIsLoading(true)
+    }
+  }, [isLoadingPinned, isLoadingRegular])
 
   useEffect(() => {
+    const updateTopicLike = (
+      prevTopics: TopicType,
+      topicId: string,
+      isPinned: boolean,
+      action: string
+    ) => {
+      const category = isPinned ? 'pinned' : 'regular'
+      return prevTopics[category].map((topic) => {
+        if (topic.id === topicId) {
+          return {
+            ...topic,
+            topicInfo: {
+              ...topic.topicInfo,
+              likes: {
+                ...topic.topicInfo.likes,
+                count:
+                  action === 'like'
+                    ? topic.topicInfo.likes.count + 1
+                    : topic.topicInfo.likes.count - 1,
+                liked: action === 'like',
+              },
+            },
+          }
+        }
+        return topic
+      })
+    }
+
     const handleLike = async (
       topicId: string,
       isPinned: boolean,
       action: string
     ) => {
       if (!browserId) return
-      const response = await fetch('/api/topics', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          topic_id: topicId,
-          browser_id: browserId,
-          action,
-        }),
+
+      setTopics((prevTopics) => {
+        return {
+          ...prevTopics,
+          [isPinned ? 'pinned' : 'regular']: updateTopicLike(
+            prevTopics,
+            topicId,
+            isPinned,
+            action
+          ),
+        }
       })
 
-      if (response.ok) {
-        isPinned ? pinedMutate() : regularMutate()
+      try {
+        const response = await fetch('/api/topics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            topic_id: topicId,
+            browser_id: browserId,
+            action,
+          }),
+        })
+
+        if (response.ok) {
+          isPinned ? pinedMutate() : regularMutate()
+        } else {
+          setTopics((prevTopics) => {
+            return {
+              ...prevTopics,
+              [isPinned ? 'pinned' : 'regular']: updateTopicLike(
+                prevTopics,
+                topicId,
+                isPinned,
+                action === 'like' ? 'unlike' : 'like'
+              ),
+            }
+          })
+          console.error('Failed to update like on the server')
+        }
+      } catch (error) {
+        console.error('Error communicating with the server:', error)
       }
     }
 
@@ -77,20 +144,28 @@ export default function Home() {
             description="Espaço para tudo sobre PCs e gadgets. Overclock, placas de vídeo, processadores e objetos de tecnologia em geral."
           />
         </div>
-        {isLoadingPinned && isLoadingRegular ? (
-          <>
-            <ForumSkeleton quantity={1} />
-            <ForumSkeleton quantity={8} />
-          </>
-        ) : (
-          <>
-            <Forum topicList={topics.pinned} />
-            <Forum topicList={topics.regular} />
-            <div className="mt-14"></div>
-          </>
-        )}
-
-        <NavBar />
+        <AnimatePresence mode="sync">
+          <motion.div
+            key={`${isLoading}-${topics.pinned.length}-${topics.regular.length}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.75 }}
+          >
+            {isLoading ? (
+              <>
+                <ForumSkeleton quantity={1} />
+                <ForumSkeleton quantity={8} />
+              </>
+            ) : (
+              <>
+                <Forum topicList={topics.pinned} />
+                <Forum topicList={topics.regular} />
+                <div className="mt-14"></div>
+              </>
+            )}
+          </motion.div>
+        </AnimatePresence>
       </main>
     </>
   )

@@ -6,8 +6,8 @@ export type CategoryProps = {
 export type TopBarProps = {
   title?: string
   isPinned?: boolean
-  isVisible?: boolean
-  setIsVisible?: (visible: boolean) => void
+  isOpen?: boolean
+  setIsOpen?: (visible: boolean) => void
 }
 
 export type AvatarProps = {
@@ -15,7 +15,7 @@ export type AvatarProps = {
 }
 
 export type LikeProps = {
-  topicId?: string
+  topicId: string
   count: number
   liked: boolean
   isPinned?: boolean

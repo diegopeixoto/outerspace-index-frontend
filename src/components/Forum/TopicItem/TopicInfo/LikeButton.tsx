@@ -1,19 +1,13 @@
 import type { LikeProps } from '@/types/layout'
-import { use, useEffect, useState, type ReactNode } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useEffect, useState, type ReactNode } from 'react'
 import { FaHeart, FaRegHeart } from 'react-icons/fa6'
 
-export default function LikeButton(likes: LikeProps) {
+export default function LikeButton(props: LikeProps) {
   const [likeIcon, setLikeIcon] = useState<ReactNode>(<FaHeart />)
-  const [liked, setLiked] = useState<boolean>(likes.liked)
-  const [likesCount, setLikesCount] = useState<number>(likes.count)
-  const { handleLike, isPinned, topicId } = likes
+  const { handleLike, isPinned, topicId, count, liked } = props
 
   useEffect(() => {
-    setLikesCount(likes.count)
-  }, [likes.count])
-
-  useEffect(() => {
-    setLiked(likes.liked)
     const iconConfig = {
       size: 20,
       likedColor: 'red',
@@ -21,7 +15,7 @@ export default function LikeButton(likes: LikeProps) {
       hoverColor: 'white',
     }
 
-    if (likes.liked) {
+    if (liked) {
       setLikeIcon(
         <FaHeart size={iconConfig.size} color={iconConfig.likedColor} />
       )
@@ -30,25 +24,32 @@ export default function LikeButton(likes: LikeProps) {
         <FaRegHeart size={iconConfig.size} color={iconConfig.unlikedColor} />
       )
     }
-  }, [likes.liked])
+  }, [liked])
 
   function handleLikeButton() {
-    if (liked) {
-      handleLike(topicId, isPinned, 'like')
-    } else {
-      handleLike(topicId, isPinned, 'unlike')
+    if (!isPinned) {
+      throw new Error('isPinned is required')
     }
-    setLiked(!liked)
+    if (handleLike) {
+      handleLike(topicId, isPinned, liked ? 'unlike' : 'like')
+    }
   }
 
   return (
-    <div
-      className="flex items-center gap-3 cursor-pointer hover:text-white 
+    <AnimatePresence mode="sync">
+      <div onClick={handleLikeButton}>
+        <motion.div
+          className="flex items-center gap-3 cursor-pointer hover:text-white 
       transition-all hover:scale-[1.15] hover-font-bold"
-      onClick={handleLikeButton}
-    >
-      {likeIcon}
-      <p className="">{likesCount}</p>
-    </div>
+          key={liked ? 'liked' : 'unliked'}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          {likeIcon}
+          <p className="">{count}</p>
+        </motion.div>
+      </div>
+    </AnimatePresence>
   )
 }
