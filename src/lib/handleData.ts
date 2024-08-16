@@ -1,4 +1,4 @@
-import type { HandleLikeProps, TopicItemProps } from '@/types/layout'
+import type { TopicType } from '@/types/topic'
 
 interface GetTopicsOptions {
   pinned: boolean
@@ -26,24 +26,30 @@ export const fetcher = async <T>(url: string): Promise<T> => {
   }
   return response.json()
 }
-
-export const enhanceTopicsWithLikeHandler = (
-  topicsData: TopicItemProps[],
-  handleLike: HandleLikeProps
-): TopicItemProps[] => {
-  return topicsData
-    .sort((a, b) => b.topicInfo.likes.count - a.topicInfo.likes.count)
-    .map(
-      (topic): TopicItemProps => ({
+export const updateTopicLike = (
+  prevTopics: TopicType,
+  topicId: string,
+  isPinned: boolean,
+  action: string
+) => {
+  const category = isPinned ? 'pinned' : 'regular'
+  return prevTopics[category].map((topic) => {
+    if (topic.id === topicId) {
+      return {
         ...topic,
         topicInfo: {
           ...topic.topicInfo,
           likes: {
             ...topic.topicInfo.likes,
-            isPinned: topic.isPinned,
-            handleLike,
+            count:
+              action === 'like'
+                ? topic.topicInfo.likes.count + 1
+                : topic.topicInfo.likes.count - 1,
+            liked: action === 'like',
           },
         },
-      })
-    )
+      }
+    }
+    return topic
+  })
 }

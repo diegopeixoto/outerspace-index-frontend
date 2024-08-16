@@ -18,15 +18,8 @@ export type LikeProps = {
   topicId: string
   count: number
   liked: boolean
-  isPinned?: boolean
-  handleLike?: HandleLikeProps
+  isPinned: boolean
 }
-
-export type HandleLikeProps = (
-  topicId: string,
-  isPinned: boolean,
-  action: string
-) => void
 
 export type TopicProps = {
   title: string
