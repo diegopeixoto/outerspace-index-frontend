@@ -14,6 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
+      <link rel="icon" href="/favicon.ico" sizes="any" />
       <body
         className={`${inter} flex flex-col items-center  w-screen h-screen bg-outer-space  bg-cover center-50 bg-fixed`}
       >
