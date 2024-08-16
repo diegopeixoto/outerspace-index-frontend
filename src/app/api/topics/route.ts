@@ -13,7 +13,7 @@ async function fetchLinks(pinned: boolean) {
     .select(
       'id, title, url, author_name, author_link, avatar_url, likes, is_pinned, created_at'
     )
-    .order('likes', { ascending: false })
+    // .order('likes', { ascending: false })
     .eq('is_pinned', pinned)
 
   if (error) throw new Error('Error fetching links')

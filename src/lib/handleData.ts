@@ -9,6 +9,9 @@ export const getTopicsUrl = ({
   pinned,
   browserId,
 }: GetTopicsOptions): string => {
+  if (!browserId) {
+    throw new Error('Browser id is required')
+  }
   const params = new URLSearchParams({
     browser_id: browserId,
     pinned: pinned.toString(),
@@ -28,18 +31,20 @@ export const enhanceTopicsWithLikeHandler = (
   topicsData: TopicItemProps[],
   handleLike: HandleLikeProps
 ): TopicItemProps[] => {
-  return topicsData.map(
-    (topic): TopicItemProps => ({
-      ...topic,
-      topicInfo: {
-        ...topic.topicInfo,
-        likes: {
-          ...topic.topicInfo.likes,
-          topicId: topic.id,
-          isPinned: topic.isPinned,
-          handleLike,
+  return topicsData
+    .sort((a, b) => b.topicInfo.likes.count - a.topicInfo.likes.count)
+    .map(
+      (topic): TopicItemProps => ({
+        ...topic,
+        topicInfo: {
+          ...topic.topicInfo,
+          likes: {
+            ...topic.topicInfo.likes,
+            topicId: topic.id,
+            isPinned: topic.isPinned,
+            handleLike,
+          },
         },
-      },
-    })
-  )
+      })
+    )
 }
