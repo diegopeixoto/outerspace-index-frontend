@@ -1,8 +1,10 @@
 import { navButtons } from '@/constants/navbar'
 import { NavActions, NavIcons, NavLabels, NavLinks } from '@/types/navbar'
 import NavButton from './NavButton'
+import { usePathname } from 'next/navigation'
 
 export default function NavBar() {
+  const path = usePathname()
   return (
     <nav
       className="w-full max-w-[800px] h-[70px] bg-[rgba(53,57,65,0.80)] 
@@ -18,7 +20,7 @@ export default function NavBar() {
           action={NavActions[button as keyof typeof NavActions]}
           icon={NavIcons[button as keyof typeof NavIcons]}
           label={NavLabels[button as keyof typeof NavLabels]}
-          selected={button == 'FORUM'}
+          selected={path == NavLinks[button as keyof typeof NavLinks]}
         />
       ))}
     </nav>
