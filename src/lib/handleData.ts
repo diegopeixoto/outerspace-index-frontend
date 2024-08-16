@@ -40,7 +40,6 @@ export const enhanceTopicsWithLikeHandler = (
           ...topic.topicInfo,
           likes: {
             ...topic.topicInfo.likes,
-            topicId: topic.id,
             isPinned: topic.isPinned,
             handleLike,
           },

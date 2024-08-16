@@ -14,18 +14,12 @@ export type AvatarProps = {
   src: string
 }
 
-export interface LikeButtonProps extends LikeProps {
-  isPinned: boolean
-  handleLike: HandleLikeProps
-  topicId: string
-}
-
 export type LikeProps = {
   topicId: string
   count: number
   liked: boolean
-  isPinned: boolean
-  handleLike: HandleLikeProps
+  isPinned?: boolean
+  handleLike?: HandleLikeProps
 }
 
 export type HandleLikeProps = (

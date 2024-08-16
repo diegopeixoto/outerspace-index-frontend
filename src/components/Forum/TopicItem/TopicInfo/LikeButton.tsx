@@ -1,9 +1,9 @@
-import type { LikeButtonProps } from '@/types/layout'
+import type { LikeProps } from '@/types/layout'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState, type ReactNode } from 'react'
 import { FaHeart, FaRegHeart } from 'react-icons/fa6'
 
-export default function LikeButton(props: LikeButtonProps) {
+export default function LikeButton(props: LikeProps) {
   const [likeIcon, setLikeIcon] = useState<ReactNode>(<FaHeart />)
   const { handleLike, isPinned, topicId, count, liked } = props
 
@@ -27,7 +27,12 @@ export default function LikeButton(props: LikeButtonProps) {
   }, [liked])
 
   function handleLikeButton() {
-    handleLike(topicId, isPinned, liked ? 'unlike' : 'like')
+    if (!isPinned) {
+      throw new Error('isPinned is required')
+    }
+    if (handleLike) {
+      handleLike(topicId, isPinned, liked ? 'unlike' : 'like')
+    }
   }
 
   return (
