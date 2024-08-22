@@ -16,7 +16,7 @@ export const getTopicsUrl = ({
     browser_id: browserId,
     pinned: pinned.toString(),
   })
-  return `api/topics?${params.toString()}`
+  return `api/data?${params.toString()}`
 }
 
 export const fetcher = async <T>(url: string): Promise<T> => {
