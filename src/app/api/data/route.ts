@@ -1,11 +1,61 @@
-import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import type { TopicItemProps } from '@/types/layout'
+import { Hono } from 'hono'
+import { handle } from 'hono/vercel'
+
+export const runtime = 'edge'
+
+const app = new Hono().basePath('/api')
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_KEY!
 )
+
+app.post('/data', async (c) => {
+  try {
+    const { topic_id, browser_id } = await c.req.json()
+
+    if (!topic_id || !browser_id) {
+      throw new Error('Topic ID and Browser ID are required')
+    }
+
+    const existingLike = await checkExistingLike(topic_id, browser_id)
+
+    if (existingLike) {
+      await removeLike(topic_id, browser_id)
+      return c.json({ message: 'Like removed successfully' })
+    } else {
+      await addLike(topic_id, browser_id)
+      return c.json({ message: 'Like added successfully' })
+    }
+  } catch (error) {
+    console.error('POST Error:', error)
+    return c.json({ error: (error as Error).message }, 500)
+  }
+})
+
+app.get('/data', async (c) => {
+  try {
+    const { searchParams } = new URL(c.req.url)
+    const browser_id = searchParams.get('browser_id')
+    const pinned = searchParams.get('pinned') === 'true'
+
+    if (!browser_id) throw new Error('Browser ID is required')
+
+    const [linksData, likedLinksSet] = await Promise.all([
+      fetchLinks(pinned),
+      fetchLikes(browser_id),
+    ])
+
+    const allData = transformTopics(linksData, likedLinksSet)
+
+    return c.json({ topics: allData })
+  } catch (error) {
+    console.error('GET Error:', error)
+    return c.json({ error: (error as Error).message }, 500)
+  }
+})
 
 async function fetchLinks(pinned: boolean) {
   const { data, error } = await supabase
@@ -54,31 +104,6 @@ function transformTopics(
   }))
 }
 
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const browser_id = searchParams.get('browser_id')
-    const pinned = searchParams.get('pinned') === 'true'
-
-    if (!browser_id) throw new Error('Browser ID is required')
-
-    const [linksData, likedLinksSet] = await Promise.all([
-      fetchLinks(pinned),
-      fetchLikes(browser_id),
-    ])
-
-    const allData = transformTopics(linksData, likedLinksSet)
-
-    return NextResponse.json({ topics: allData })
-  } catch (error) {
-    console.error('GET Error:', error)
-    return NextResponse.json(
-      { error: (error as Error).message },
-      { status: 500 }
-    )
-  }
-}
-
 async function checkExistingLike(topic_id: string, browser_id: string) {
   const { data, error } = await supabase
     .from('likes')
@@ -114,28 +139,5 @@ async function addLike(topic_id: string, browser_id: string) {
   await supabase.rpc('increment_likes', { row_id: topic_id })
 }
 
-export async function POST(request: Request) {
-  try {
-    const { topic_id, browser_id } = await request.json()
-
-    if (!topic_id || !browser_id) {
-      throw new Error('Topic ID and Browser ID are required')
-    }
-
-    const existingLike = await checkExistingLike(topic_id, browser_id)
-
-    if (existingLike) {
-      await removeLike(topic_id, browser_id)
-      return NextResponse.json({ message: 'Like removed successfully' })
-    } else {
-      await addLike(topic_id, browser_id)
-      return NextResponse.json({ message: 'Like added successfully' })
-    }
-  } catch (error) {
-    console.error('POST Error:', error)
-    return NextResponse.json(
-      { error: (error as Error).message },
-      { status: 500 }
-    )
-  }
-}
+export const GET = handle(app)
+export const POST = handle(app)
