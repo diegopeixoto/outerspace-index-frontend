@@ -1,4 +1,5 @@
 'use client'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useBrowserId } from '@/lib/browserid'
 import { LikeProvider } from '@/context/LikeContext'
 import { useTopicsData } from '@/hooks/useTopicsData'
@@ -8,18 +9,24 @@ import Forum from '@/components/Forum'
 import ForumSkeleton from '@/components/Skeleton/ForumSkeleton'
 import { AnimatePresence, motion } from 'framer-motion'
 
+const queryClient = new QueryClient()
+
 export default function Home() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <HomeContent />
+    </QueryClientProvider>
+  )
+}
+
+function HomeContent() {
   const browserId = useBrowserId()
   const { topics, isLoading, setTopics } = useTopicsData(browserId!)
 
   return (
     <>
       <Header />
-      <LikeProvider
-        browserId={browserId!}
-        setTopics={setTopics}
-        topics={topics}
-      >
+      <LikeProvider browserId={browserId!} setTopics={setTopics}>
         <main className="max-w-[800px] bg-[#1b1c21]">
           <div className="flex flex-col justify-center p-4 w-full">
             <Category

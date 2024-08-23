@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState } from 'react'
-import { useSWRConfig } from 'swr'
+import React, { createContext, useContext } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { updateTopicLike } from '@/lib/handleData'
 import { type TopicType } from '@/types/topic'
 
@@ -21,56 +21,62 @@ export const LikeProvider: React.FC<{
   children: React.ReactNode
   browserId: string
   setTopics: React.Dispatch<React.SetStateAction<TopicType>>
-  topics: TopicType
-}> = ({ children, browserId, setTopics, topics }) => {
-  const { mutate: pinedMutate } = useSWRConfig()
-  const { mutate: regularMutate } = useSWRConfig()
+}> = ({ children, browserId, setTopics }) => {
+  const queryClient = useQueryClient()
 
-  const handleLike = async (
-    topicId: string,
-    isPinned: boolean,
-    action: string
-  ) => {
-    if (!browserId) return
-
-    setTopics((prevTopics) => ({
-      ...prevTopics,
-      [isPinned ? 'pinned' : 'regular']: updateTopicLike(
-        prevTopics,
-        topicId,
-        isPinned,
-        action
-      ),
-    }))
-
-    try {
+  const likeMutation = useMutation({
+    mutationFn: async ({
+      topicId,
+      isPinned,
+      action,
+    }: {
+      topicId: string
+      isPinned: boolean
+      action: string
+    }) => {
       const response = await fetch('/api/topics', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           topic_id: topicId,
           browser_id: browserId,
+          is_pinned: isPinned,
           action,
         }),
       })
-
-      if (response.ok) {
-        isPinned ? pinedMutate(response) : regularMutate(response)
-      } else {
-        setTopics((prevTopics) => ({
-          ...prevTopics,
-          [isPinned ? 'pinned' : 'regular']: updateTopicLike(
-            prevTopics,
-            topicId,
-            isPinned,
-            action === 'like' ? 'unlike' : 'like'
-          ),
-        }))
-        console.error('Failed to update like on the server')
+      if (!response.ok) {
+        throw new Error('Failed to update like on the server')
       }
-    } catch (error) {
-      console.error('Error communicating with the server:', error)
-    }
+      return response.json()
+    },
+    onMutate: async ({ topicId, isPinned, action }) => {
+      await queryClient.cancelQueries({ queryKey: ['topics'] })
+      const previousTopics = queryClient.getQueryData(['topics'])
+
+      setTopics((prevTopics) => ({
+        ...prevTopics,
+        [isPinned ? 'pinned' : 'regular']: updateTopicLike(
+          prevTopics,
+          topicId,
+          isPinned,
+          action
+        ),
+      }))
+
+      return { previousTopics }
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previousTopics) {
+        queryClient.setQueryData(['topics'], context.previousTopics)
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['topics'] })
+    },
+  })
+
+  const handleLike = (topicId: string, isPinned: boolean, action: string) => {
+    likeMutation.mutate({ topicId, isPinned, action })
   }
 
   return (
