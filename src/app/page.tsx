@@ -27,7 +27,7 @@ function HomeContent() {
     <>
       <Header />
       <LikeProvider browserId={browserId!} setTopics={setTopics}>
-        <main className="max-w-[800px] bg-[#1b1c21]">
+        <main className="max-w-[800px] bg-[#1b1c21] w-full">
           <div className="flex flex-col justify-center p-4 w-full">
             <Category
               title="PC, Hardware & Gadgets - Discussão"
