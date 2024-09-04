@@ -30,7 +30,7 @@ The application serves as an index for topics in the Outer Space forums, featuri
 - **State Management**: Managed through React's Context API.
 - **Animations**: Smooth animations using Framer Motion.
 - **Backend Integration**: Supabase for database management and user authentication.
-- **Data Fetching**: Efficient data fetching with SWR and custom hooks.
+- **Data Fetching**: Efficient data fetching with TanStack Query (React Query) and custom hooks.
 - **Security**: Browser fingerprinting using FingerprintJS.
 
 ## Project Structure

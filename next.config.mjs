@@ -2,10 +2,6 @@
 const nextConfig = {
   images: {
     remotePatterns: [
-      // {
-      //   protocol: 'https',
-      //   hostname: '*.pravatar.cc',
-      // },
       {
         protocol: 'https',
         hostname: '*.outerspace.com.br',
