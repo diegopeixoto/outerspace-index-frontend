@@ -5,7 +5,6 @@ import { type TopicAPIResponse, type TopicType } from '@/types/topic'
 
 export const useTopicsData = (browserId: string) => {
   const [topics, setTopics] = useState<TopicType>({ regular: [], pinned: [] })
-  const queryClient = useQueryClient()
 
   const queries = useQueries({
     queries: [

@@ -16,7 +16,7 @@ export default function RootLayout({
     <html lang="pt-BR">
       <link rel="icon" href="/favicon.ico" sizes="any" />
       <body
-        className={`${inter} flex flex-col items-center  w-screen h-screen bg-outer-space  bg-cover center-50 bg-fixed`}
+        className={`${inter.className} flex flex-col items-center  w-screen h-screen bg-outer-space  bg-cover center-50 bg-fixed`}
       >
         {children}
       </body>
